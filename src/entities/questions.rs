@@ -23,6 +23,8 @@ pub struct Model {
         on_delete = "Cascade"
     )]
     pub topics: HasOne<super::topics::Entity>,
+    #[sea_orm(has_many, via = "user_favorite_questions")]
+    pub users: HasMany<super::users::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}

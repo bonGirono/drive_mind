@@ -28,4 +28,6 @@ pub struct Model {
     pub username: Option<String>,
     #[sea_orm(has_many)]
     pub user_subscriptions: HasMany<super::user_subscriptions::Entity>,
+    #[sea_orm(has_many, via = "user_favorite_questions")]
+    pub questions: HasMany<super::questions::Entity>,
 }

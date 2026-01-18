@@ -17,7 +17,6 @@ impl MigrationTrait for Migration {
             .col(uuid(Answers::QuestionId))
             .col(string(Answers::Value))
             .col(boolean(Answers::IsCorrect))
-            .col(string(Answers::Lang))
             .foreign_key(
                 ForeignKey::create()
                     .name("fk_answers_question")
@@ -45,7 +44,6 @@ pub enum Answers {
     QuestionId,
     Value,
     IsCorrect,
-    Lang,
 }
 
 #[derive(Iden)]

@@ -17,6 +17,7 @@ impl MigrationTrait for Migration {
             .col(string(Topics::Name))
             .col(string(Topics::Difficulty))
             .col(small_integer(Topics::Duration))
+            .col(boolean(Topics::SubscriptionRequired).default(false))
             .to_owned();
         manager.create_table(table).await?;
         Ok(())
@@ -35,5 +36,6 @@ pub enum Topics {
     Id,
     Name,
     Difficulty,
+    SubscriptionRequired,
     Duration,
 }

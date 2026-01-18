@@ -1,7 +1,7 @@
 use crate::{
     AppContext,
     entities::{answers, questions},
-    models::answers::{AnswerResponse, CreateAnswerParams, LangQuery, UpdateAnswerParams},
+    models::answers::{AnswerResponse, CreateAnswerParams, UpdateAnswerParams},
     utils::{
         extractors::{AuthUser, check_topic_access_by_id},
         response::ApiError,
@@ -9,7 +9,7 @@ use crate::{
 };
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Path, State},
     response::{IntoResponse, Response},
 };
 use sea_orm::{
@@ -33,12 +33,11 @@ async fn get_topic_id_by_question(
     Ok(question.topic_id)
 }
 
-/// List all answers by lang (requires auth)
+/// List all answers (requires auth)
 #[utoipa::path(
     get,
     tag = "Answers",
     path = "/api/answers",
-    params(LangQuery),
     responses(
         (status = 200, body = Vec<AnswerResponse>),
         ApiError
@@ -48,10 +47,8 @@ async fn get_topic_id_by_question(
 async fn list(
     _auth_user: AuthUser,
     State(ctx): State<AppContext>,
-    Query(query): Query<LangQuery>,
 ) -> axum::response::Result<Response> {
     let answers = answers::Entity::find()
-        .filter(answers::Column::Lang.eq(&query.lang))
         .all(&ctx.db)
         .await
         .map_err(ApiError::from)?
@@ -62,15 +59,12 @@ async fn list(
     Ok(Json(answers).into_response())
 }
 
-/// Get answer by id and lang (requires auth, subscription if topic requires)
+/// Get answer by id (requires auth, subscription if topic requires)
 #[utoipa::path(
     get,
     tag = "Answers",
     path = "/api/answers/{id}",
-    params(
-        ("id" = Uuid, Path, description = "Answer ID"),
-        LangQuery
-    ),
+    params(("id" = Uuid, Path, description = "Answer ID")),
     responses(
         (status = 200, body = AnswerResponse),
         ApiError
@@ -81,10 +75,8 @@ async fn get(
     auth_user: AuthUser,
     Path(id): Path<Uuid>,
     State(ctx): State<AppContext>,
-    Query(query): Query<LangQuery>,
 ) -> axum::response::Result<Response> {
     let answer = answers::Entity::find_by_id(id)
-        .filter(answers::Column::Lang.eq(&query.lang))
         .one(&ctx.db)
         .await
         .map_err(ApiError::from)?
@@ -124,7 +116,6 @@ async fn create(
         question_id: Set(params.question_id),
         value: Set(params.value),
         is_correct: Set(params.is_correct),
-        lang: Set(params.lang),
         ..Default::default()
     };
 
@@ -182,9 +173,6 @@ async fn update(
     if let Some(is_correct) = params.is_correct {
         to_update.is_correct = Set(is_correct);
     }
-    if let Some(lang) = params.lang {
-        to_update.lang = Set(lang);
-    }
 
     let answer = to_update.update(&ctx.db).await.map_err(ApiError::from)?;
 
@@ -226,15 +214,12 @@ async fn delete(
     Ok(().into_response())
 }
 
-/// Get answers by question id and lang (requires auth, subscription if topic requires)
+/// Get answers by question id (requires auth, subscription if topic requires)
 #[utoipa::path(
     get,
     tag = "Answers",
     path = "/api/questions/{question_id}/answers",
-    params(
-        ("question_id" = Uuid, Path, description = "Question ID"),
-        LangQuery
-    ),
+    params(("question_id" = Uuid, Path, description = "Question ID")),
     responses(
         (status = 200, body = Vec<AnswerResponse>),
         ApiError
@@ -245,7 +230,6 @@ async fn get_by_question(
     auth_user: AuthUser,
     Path(question_id): Path<Uuid>,
     State(ctx): State<AppContext>,
-    Query(query): Query<LangQuery>,
 ) -> axum::response::Result<Response> {
     // Проверяем доступ к topic через question
     let topic_id = get_topic_id_by_question(&ctx.db, question_id).await?;
@@ -253,7 +237,6 @@ async fn get_by_question(
 
     let answers = answers::Entity::find()
         .filter(answers::Column::QuestionId.eq(question_id))
-        .filter(answers::Column::Lang.eq(&query.lang))
         .all(&ctx.db)
         .await
         .map_err(ApiError::from)?

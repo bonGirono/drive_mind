@@ -1,15 +1,9 @@
 use serde::{Deserialize, Serialize};
-use utoipa::{IntoParams, ToSchema};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
 use crate::entities::answers;
-
-#[derive(Debug, Deserialize, IntoParams)]
-pub struct LangQuery {
-    /// Language code (e.g., "en", "ru")
-    pub lang: String,
-}
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct AnswerResponse {
@@ -17,7 +11,6 @@ pub struct AnswerResponse {
     pub question_id: Uuid,
     pub value: String,
     pub is_correct: bool,
-    pub lang: String,
 }
 
 impl From<answers::Model> for AnswerResponse {
@@ -27,7 +20,6 @@ impl From<answers::Model> for AnswerResponse {
             question_id: model.question_id,
             value: model.value,
             is_correct: model.is_correct,
-            lang: model.lang,
         }
     }
 }
@@ -38,8 +30,6 @@ pub struct CreateAnswerParams {
     #[validate(length(min = 1, max = 500))]
     pub value: String,
     pub is_correct: bool,
-    #[validate(length(min = 2, max = 10))]
-    pub lang: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
@@ -48,6 +38,4 @@ pub struct UpdateAnswerParams {
     #[validate(length(min = 1, max = 500))]
     pub value: Option<String>,
     pub is_correct: Option<bool>,
-    #[validate(length(min = 2, max = 10))]
-    pub lang: Option<String>,
 }

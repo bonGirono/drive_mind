@@ -5,14 +5,14 @@ use serde::{Deserialize, Serialize};
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
-#[sea_orm(table_name = "answers")]
+#[sea_orm(table_name = "user_favorite_questions")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     #[serde(skip_deserializing)]
-    pub id: Uuid,
+    pub user_id: Uuid,
+    #[sea_orm(primary_key, auto_increment = false)]
+    #[serde(skip_deserializing)]
     pub question_id: Uuid,
-    pub value: String,
-    pub is_correct: bool,
     #[sea_orm(
         belongs_to,
         from = "question_id",
@@ -21,6 +21,14 @@ pub struct Model {
         on_delete = "Cascade"
     )]
     pub questions: HasOne<super::questions::Entity>,
+    #[sea_orm(
+        belongs_to,
+        from = "user_id",
+        to = "id",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    pub users: HasOne<super::users::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
