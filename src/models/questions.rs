@@ -17,6 +17,8 @@ pub struct QuestionResponse {
     pub topic_id: Uuid,
     pub name: String,
     pub lang: String,
+    pub content: Option<String>,
+    pub explanation: String,
 }
 
 impl From<questions::Model> for QuestionResponse {
@@ -26,6 +28,8 @@ impl From<questions::Model> for QuestionResponse {
             topic_id: model.topic_id,
             name: model.name,
             lang: model.lang,
+            content: model.content,
+            explanation: model.explanation,
         }
     }
 }
@@ -37,6 +41,9 @@ pub struct CreateQuestionParams {
     pub name: String,
     #[validate(length(min = 2, max = 10))]
     pub lang: String,
+    pub content: Option<String>,
+    #[validate(length(min = 1))]
+    pub explanation: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
@@ -46,4 +53,7 @@ pub struct UpdateQuestionParams {
     pub name: Option<String>,
     #[validate(length(min = 2, max = 10))]
     pub lang: Option<String>,
+    pub content: Option<String>,
+    #[validate(length(min = 1))]
+    pub explanation: Option<String>,
 }

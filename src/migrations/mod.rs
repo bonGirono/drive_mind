@@ -7,6 +7,8 @@ pub mod m20251211_000006_questions;
 pub mod m20251211_000007_answers;
 pub mod m20251211_000008_user_favorite_questions;
 pub mod m20251211_000009_categories;
+pub mod m20251211_000010_questions_add_fields;
+pub mod m20251211_000011_question_categories;
 use sea_orm_migration::prelude::*;
 mod utils;
 
@@ -25,6 +27,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20251211_000007_answers::Migration),
             Box::new(m20251211_000008_user_favorite_questions::Migration),
             Box::new(m20251211_000009_categories::Migration),
+            Box::new(m20251211_000010_questions_add_fields::Migration),
+            Box::new(m20251211_000011_question_categories::Migration),
         ]
     }
 }

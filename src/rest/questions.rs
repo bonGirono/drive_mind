@@ -108,6 +108,8 @@ async fn create(
         topic_id: Set(params.topic_id),
         name: Set(params.name),
         lang: Set(params.lang),
+        content: Set(params.content),
+        explanation: Set(params.explanation),
         ..Default::default()
     };
 
@@ -162,6 +164,12 @@ async fn update(
     }
     if let Some(lang) = params.lang {
         to_update.lang = Set(lang);
+    }
+    if params.content.is_some() {
+        to_update.content = Set(params.content);
+    }
+    if let Some(explanation) = params.explanation {
+        to_update.explanation = Set(explanation);
     }
 
     let question = to_update.update(&ctx.db).await.map_err(ApiError::from)?;

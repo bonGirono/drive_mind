@@ -11,6 +11,8 @@ pub struct Model {
     #[serde(skip_deserializing)]
     pub id: Uuid,
     pub name: String,
+    #[sea_orm(has_many, via = "question_categories")]
+    pub questions: HasMany<super::questions::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}

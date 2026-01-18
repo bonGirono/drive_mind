@@ -13,6 +13,9 @@ pub struct Model {
     pub topic_id: Uuid,
     pub name: String,
     pub lang: String,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub content: Option<String>,
+    pub explanation: String,
     #[sea_orm(has_many)]
     pub answers: HasMany<super::answers::Entity>,
     #[sea_orm(
@@ -25,6 +28,8 @@ pub struct Model {
     pub topics: HasOne<super::topics::Entity>,
     #[sea_orm(has_many, via = "user_favorite_questions")]
     pub users: HasMany<super::users::Entity>,
+    #[sea_orm(has_many, via = "question_categories")]
+    pub categories: HasMany<super::categories::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
