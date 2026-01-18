@@ -1,6 +1,6 @@
 use crate::{
     AppContext,
-    entities::{questions, topics},
+    entities::{categories, question_categories, questions, topics, user_favorite_questions},
     models::questions::{CreateQuestionParams, LangQuery, QuestionResponse, UpdateQuestionParams},
     utils::{
         extractors::{AuthUser, check_topic_access, check_topic_access_by_id},
@@ -254,6 +254,99 @@ async fn get_by_topic(
     Ok(Json(questions).into_response())
 }
 
+/// Get questions by category id and lang (requires auth)
+#[utoipa::path(
+    get,
+    tag = "Questions",
+    path = "/api/categories/{category_id}/questions",
+    params(
+        ("category_id" = Uuid, Path, description = "Category ID"),
+        LangQuery
+    ),
+    responses(
+        (status = 200, body = Vec<QuestionResponse>),
+        ApiError
+    ),
+    security(("jwt_token" = []))
+)]
+async fn get_by_category(
+    _auth_user: AuthUser,
+    Path(category_id): Path<Uuid>,
+    State(ctx): State<AppContext>,
+    Query(query): Query<LangQuery>,
+) -> axum::response::Result<Response> {
+    // Проверяем что категория существует
+    categories::Entity::find_by_id(category_id)
+        .one(&ctx.db)
+        .await
+        .map_err(ApiError::from)?
+        .ok_or(ApiError::NotFound)?;
+
+    // Получаем question_ids для этой категории
+    let question_ids: Vec<Uuid> = question_categories::Entity::find()
+        .filter(question_categories::Column::CategoryId.eq(category_id))
+        .all(&ctx.db)
+        .await
+        .map_err(ApiError::from)?
+        .into_iter()
+        .map(|qc| qc.question_id)
+        .collect();
+
+    // Получаем вопросы по ids и lang
+    let questions_list = questions::Entity::find()
+        .filter(questions::Column::Id.is_in(question_ids))
+        .filter(questions::Column::Lang.eq(&query.lang))
+        .all(&ctx.db)
+        .await
+        .map_err(ApiError::from)?
+        .into_iter()
+        .map(QuestionResponse::from)
+        .collect::<Vec<_>>();
+
+    Ok(Json(questions_list).into_response())
+}
+
+/// Get user's favorite questions by lang (requires auth)
+#[utoipa::path(
+    get,
+    tag = "Questions",
+    path = "/api/favorites/questions",
+    params(LangQuery),
+    responses(
+        (status = 200, body = Vec<QuestionResponse>),
+        ApiError
+    ),
+    security(("jwt_token" = []))
+)]
+async fn get_favorites(
+    auth_user: AuthUser,
+    State(ctx): State<AppContext>,
+    Query(query): Query<LangQuery>,
+) -> axum::response::Result<Response> {
+    // Получаем question_ids для избранных вопросов пользователя
+    let question_ids: Vec<Uuid> = user_favorite_questions::Entity::find()
+        .filter(user_favorite_questions::Column::UserId.eq(auth_user.user.id))
+        .all(&ctx.db)
+        .await
+        .map_err(ApiError::from)?
+        .into_iter()
+        .map(|fq| fq.question_id)
+        .collect();
+
+    // Получаем вопросы по ids и lang
+    let questions_list = questions::Entity::find()
+        .filter(questions::Column::Id.is_in(question_ids))
+        .filter(questions::Column::Lang.eq(&query.lang))
+        .all(&ctx.db)
+        .await
+        .map_err(ApiError::from)?
+        .into_iter()
+        .map(QuestionResponse::from)
+        .collect::<Vec<_>>();
+
+    Ok(Json(questions_list).into_response())
+}
+
 pub fn routes() -> OpenApiRouter<AppContext> {
     OpenApiRouter::new()
         .routes(routes!(list))
@@ -262,4 +355,6 @@ pub fn routes() -> OpenApiRouter<AppContext> {
         .routes(routes!(update))
         .routes(routes!(delete))
         .routes(routes!(get_by_topic))
+        .routes(routes!(get_by_category))
+        .routes(routes!(get_favorites))
 }

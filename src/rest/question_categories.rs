@@ -142,49 +142,9 @@ async fn remove_category_from_question(
     Ok(().into_response())
 }
 
-/// Get questions by category
-#[utoipa::path(
-    get,
-    tag = "Question Categories",
-    path = "/api/categories/{category_id}/questions",
-    params(("category_id" = Uuid, Path, description = "Category ID")),
-    responses(
-        (status = 200, body = Vec<QuestionCategoryResponse>),
-        ApiError
-    ),
-    security(("jwt_token" = []))
-)]
-async fn get_questions_by_category(
-    _auth_user: AuthUser,
-    Path(category_id): Path<Uuid>,
-    State(ctx): State<AppContext>,
-) -> axum::response::Result<Response> {
-    // Проверяем что категория существует
-    categories::Entity::find_by_id(category_id)
-        .one(&ctx.db)
-        .await
-        .map_err(ApiError::from)?
-        .ok_or(ApiError::NotFound)?;
-
-    let links = question_categories::Entity::find()
-        .filter(question_categories::Column::CategoryId.eq(category_id))
-        .all(&ctx.db)
-        .await
-        .map_err(ApiError::from)?
-        .into_iter()
-        .map(|qc| QuestionCategoryResponse {
-            question_id: qc.question_id,
-            category_id: qc.category_id,
-        })
-        .collect::<Vec<_>>();
-
-    Ok(Json(links).into_response())
-}
-
 pub fn routes() -> OpenApiRouter<AppContext> {
     OpenApiRouter::new()
         .routes(routes!(get_question_categories))
         .routes(routes!(add_category_to_question))
         .routes(routes!(remove_category_from_question))
-        .routes(routes!(get_questions_by_category))
 }
