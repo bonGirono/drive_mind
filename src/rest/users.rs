@@ -39,7 +39,7 @@ async fn add_sub(
 
     let sub = user_subscriptions::ActiveModel {
         user_id: Set(user.id),
-        expire_at: Set((chrono::Utc::now() + chrono::Duration::minutes(10)).into()),
+        expire_at: Set((chrono::Utc::now() + chrono::Duration::hours(2)).into()),
         ..Default::default()
     };
 

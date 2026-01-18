@@ -85,6 +85,8 @@ askama = { version = "0.14.0", features = ["full"] }
 regex = "1.12.2"
 # Validator
 validator = { version = "0.19", features = ["derive"] }
+# File streaming
+tokio-util = { version = "0.7", features = ["io"] }
 # # SSL | TLS
 # rustls = { version = "0.23.35", features = ["ring"] }
 # webpki-roots = "1.0.4"

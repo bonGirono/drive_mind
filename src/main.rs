@@ -81,6 +81,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .routes(routes!(healthcheck))
         .merge(rest::auth::routes())
         .merge(rest::users::routes())
+        .merge(rest::images::routes())
+        .merge(rest::topics::routes())
+        .merge(rest::lessons::routes())
+        .merge(rest::questions::routes())
+        .merge(rest::answers::routes())
         .layer(
             tower_http::trace::TraceLayer::new_for_http().make_span_with(
                 tower_http::trace::DefaultMakeSpan::default().include_headers(true),
