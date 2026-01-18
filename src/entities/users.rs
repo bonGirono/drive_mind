@@ -26,4 +26,6 @@ pub struct Model {
     pub password: String,
     pub phone_number: Option<String>,
     pub username: Option<String>,
+    #[sea_orm(has_many)]
+    pub user_subscriptions: HasMany<super::user_subscriptions::Entity>,
 }

@@ -53,12 +53,6 @@ pub struct ServerConfig {
     #[arg(short, long, env("SERVER_PORT"), default_value_t = 3030)]
     pub port: u16,
 
-    #[arg(long, env("REDIS_URL"))]
-    pub redis_url: String,
-
-    #[arg(long, env("ENQUEUE_SCHEDULED"), default_value_t = 5)]
-    pub enqueue_scheduled: u64,
-
     // #[arg(long, env("SMTP_HOST"))]
     // pub smtp_host: String,
 

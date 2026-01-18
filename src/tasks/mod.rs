@@ -1,11 +1,14 @@
+pub mod handle_subscriptions;
+
 use apalis::prelude::{Data, Error};
 use serde::{Deserialize, Serialize};
 
 use crate::AppContext;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub enum TasksEnum {
-    Healthcheck,
+    #[default]
+    CheckSubscriptions,
 }
 
 pub async fn scheduled_task(
@@ -13,8 +16,9 @@ pub async fn scheduled_task(
     state: Data<AppContext>, // Extension(config): Extension<ServerConfig>,
 ) -> Result<(), Error> {
     match ctx {
-        TasksEnum::Healthcheck => tracing::info!("ok!"),
+        TasksEnum::CheckSubscriptions => {
+            handle_subscriptions::disable_expired_subscriptions(&state.db).await
+        }
     };
-    _ = state.tasks_redis_storage;
     Ok(())
 }

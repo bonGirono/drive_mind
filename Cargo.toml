@@ -64,7 +64,7 @@ eui48 = "1.1.0"
 # Background tasks
 apalis = { version = "0.7.4", features = ["catch-panic", "docsrs", "document-features", "filter", "layers", "retry", "uuid"] }
 apalis-cron = "0.7.4"
-apalis-redis = "0.7.4"
+# apalis-redis = "0.7.4"
 redis = { version = "0.32.7", features = ["tokio-comp", "connection-manager", "tls-rustls", "tokio-rustls-comp"] }
 # Openapi
 utoipa = { version = "5.4.0", features = ["axum_extras", "chrono", "decimal", "openapi_extensions", "uuid"] }

@@ -1,7 +1,7 @@
 use crate::{
     AppContext,
-    entities::users,
-    models::users::{UpdateUserParams, UsersResponse},
+    entities::{user_subscriptions, users},
+    models::users::{AuthParams, UpdateUserParams, UsersResponse},
     utils::response::ApiError,
 };
 use axum::{
@@ -12,6 +12,41 @@ use axum::{
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait, IntoActiveModel};
 use utoipa_axum::{router::OpenApiRouter, routes};
 use uuid::Uuid;
+
+/// Add subscription
+#[utoipa::path(
+    post,
+    tag = "Users",
+    path = "/api/users/_sub",
+    request_body = AuthParams,
+    responses(
+        (status = 200),
+        ApiError
+    ),
+    security()
+)]
+async fn add_sub(
+    State(ctx): State<AppContext>,
+    Json(params): Json<AuthParams>,
+) -> axum::response::Result<Response> {
+    let user = users::Entity::find_by_email(params.email)
+        .one(&ctx.db)
+        .await
+        .map_err(ApiError::from)?
+        .ok_or(ApiError::UserNotFound)?;
+
+    user.validate_password(params.password)?;
+
+    let sub = user_subscriptions::ActiveModel {
+        user_id: Set(user.id),
+        expire_at: Set((chrono::Utc::now() + chrono::Duration::minutes(10)).into()),
+        ..Default::default()
+    };
+
+    sub.insert(&ctx.db).await.map_err(ApiError::from)?;
+
+    Ok(().into_response())
+}
 
 /// List users
 #[utoipa::path(
@@ -121,6 +156,10 @@ async fn update(
         to_update.phone_number = Set(Some(v));
     }
 
+    if let Some(v) = params.email {
+        to_update.email = Set(v);
+    }
+
     let user = to_update.update(&ctx.db).await.map_err(ApiError::from)?;
 
     Ok(Json(UsersResponse::from(user)).into_response())
@@ -132,4 +171,5 @@ pub fn routes() -> OpenApiRouter<AppContext> {
         .routes(routes!(get))
         .routes(routes!(delete))
         .routes(routes!(update))
+        .routes(routes!(add_sub))
 }

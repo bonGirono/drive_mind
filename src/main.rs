@@ -1,8 +1,9 @@
 use apalis::prelude::*;
-use apalis_redis::RedisStorage;
+use apalis_cron::{CronStream, Schedule};
 use axum::response::IntoResponse;
 use sea_orm::DatabaseConnection;
 use std::net::SocketAddr;
+use std::str::FromStr;
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
@@ -18,7 +19,6 @@ mod utils;
 #[derive(Clone)]
 struct AppContext {
     db: DatabaseConnection,
-    pub tasks_redis_storage: RedisStorage<tasks::TasksEnum>,
 }
 
 #[derive(OpenApi)]
@@ -57,32 +57,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let server_config = utils::config::ServerConfig::load();
     let db_config = utils::config::DBConfig::load();
-    let conn = apalis_redis::connect(server_config.redis_url.clone())
-        .await
-        .unwrap();
-    let mut apalis_config = apalis_redis::Config::default();
-    apalis_config = apalis_config.set_enqueue_scheduled(std::time::Duration::from_secs(
-        server_config.enqueue_scheduled,
-    ));
-    apalis_config = apalis_config.set_poll_interval(std::time::Duration::from_secs(1));
-    let storage = RedisStorage::new_with_config(conn, apalis_config);
 
     let db = db_config.connect().await;
-    let state = AppContext {
-        db,
-        tasks_redis_storage: storage.clone(),
-    };
+    let state = AppContext { db };
     let state_clone = state.clone();
+    let schedule = Schedule::from_str("0 * * * * *").unwrap();
+    let worker = WorkerBuilder::new("morning-cereal")
+        .retry(apalis::layers::retry::RetryPolicy::retries(5))
+        .data(state_clone)
+        .backend(CronStream::new(schedule))
+        .build_fn(tasks::scheduled_task);
 
     tokio::spawn(async move {
-        WorkerBuilder::new(&format!("quick-sand"))
-            .enable_tracing()
-            .concurrency(2)
-            .data(state_clone)
-            .backend(storage)
-            .build_fn(tasks::scheduled_task)
-            .run()
-            .await;
+        worker.run().await;
     });
 
     let addr: SocketAddr = server_config.get_addr();

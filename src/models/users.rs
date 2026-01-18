@@ -25,6 +25,14 @@ pub struct AuthParams {
 pub struct UpdateUserParams {
     pub username: Option<String>,
     pub phone_number: Option<String>,
+    pub email: Option<String>,
+}
+
+#[derive(Clone, Debug, Validate, Serialize, Deserialize, ToSchema)]
+pub struct UpdatePasswordParams {
+    pub old: String,
+    #[validate(length(min = 3))]
+    pub new: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
@@ -42,6 +50,42 @@ impl From<crate::entities::users::Model> for UsersResponse {
             email: value.email,
             phone_number: value.phone_number,
             username: value.username,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
+pub struct SubscriptionResponse {
+    pub id: Uuid,
+    pub expire_at: chrono::DateTime<chrono::FixedOffset>,
+}
+
+impl From<crate::entities::user_subscriptions::Model> for SubscriptionResponse {
+    fn from(value: crate::entities::user_subscriptions::Model) -> Self {
+        Self {
+            id: value.id,
+            expire_at: value.expire_at,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
+pub struct UserSubscriptionResponse {
+    pub id: Uuid,
+    pub email: String,
+    pub phone_number: Option<String>,
+    pub username: Option<String>,
+    pub subscription: Option<SubscriptionResponse>,
+}
+
+impl From<crate::entities::users::Model> for UserSubscriptionResponse {
+    fn from(value: crate::entities::users::Model) -> Self {
+        Self {
+            id: value.id,
+            email: value.email,
+            phone_number: value.phone_number,
+            username: value.username,
+            subscription: None,
         }
     }
 }

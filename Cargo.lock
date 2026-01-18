@@ -173,7 +173,6 @@ dependencies = [
  "futures-timer",
  "pin-project-lite",
  "serde",
- "serde_json",
  "thiserror",
  "tower 0.5.3",
  "ulid",
@@ -191,22 +190,6 @@ dependencies = [
  "cron",
  "futures",
  "tower 0.5.3",
-]
-
-[[package]]
-name = "apalis-redis"
-version = "0.7.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "871367e3dfff2accda824ccc6e4f46f8f155c865065a450c466a7f2835541d55"
-dependencies = [
- "apalis-core",
- "chrono",
- "futures",
- "log",
- "redis",
- "serde",
- "thiserror",
- "tokio",
 ]
 
 [[package]]
@@ -1129,7 +1112,6 @@ version = "0.1.0"
 dependencies = [
  "apalis",
  "apalis-cron",
- "apalis-redis",
  "argon2",
  "askama",
  "axum",
