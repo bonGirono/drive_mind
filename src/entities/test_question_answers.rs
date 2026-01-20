@@ -5,22 +5,25 @@ use serde::{Deserialize, Serialize};
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
-#[sea_orm(table_name = "question_categories")]
+#[sea_orm(table_name = "test_question_answers")]
 pub struct Model {
+    #[sea_orm(primary_key, auto_increment = false)]
+    #[serde(skip_deserializing)]
+    pub test_id: Uuid,
     #[sea_orm(primary_key, auto_increment = false)]
     #[serde(skip_deserializing)]
     pub question_id: Uuid,
     #[sea_orm(primary_key, auto_increment = false)]
     #[serde(skip_deserializing)]
-    pub category_id: Uuid,
+    pub answer_id: Uuid,
     #[sea_orm(
         belongs_to,
-        from = "category_id",
+        from = "answer_id",
         to = "id",
         on_update = "Cascade",
         on_delete = "Cascade"
     )]
-    pub categories: HasOne<super::categories::Entity>,
+    pub answers: HasOne<super::answers::Entity>,
     #[sea_orm(
         belongs_to,
         from = "question_id",
@@ -29,6 +32,14 @@ pub struct Model {
         on_delete = "Cascade"
     )]
     pub questions: HasOne<super::questions::Entity>,
+    #[sea_orm(
+        belongs_to,
+        from = "test_id",
+        to = "id",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    pub tests: HasOne<super::tests::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}

@@ -21,6 +21,8 @@ pub struct Model {
         on_delete = "Cascade"
     )]
     pub questions: HasOne<super::questions::Entity>,
+    #[sea_orm(has_many)]
+    pub test_question_answers: HasMany<super::test_question_answers::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}

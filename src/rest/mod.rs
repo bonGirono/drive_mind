@@ -5,6 +5,7 @@ pub mod images;
 pub mod lessons;
 pub mod question_categories;
 pub mod questions;
+pub mod tests;
 pub mod topics;
 pub mod user_favorite_questions;
 pub mod users;

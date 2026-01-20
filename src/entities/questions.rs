@@ -18,6 +18,8 @@ pub struct Model {
     pub explanation: String,
     #[sea_orm(has_many)]
     pub answers: HasMany<super::answers::Entity>,
+    #[sea_orm(has_many)]
+    pub test_question_answers: HasMany<super::test_question_answers::Entity>,
     #[sea_orm(
         belongs_to,
         from = "topic_id",
@@ -26,10 +28,12 @@ pub struct Model {
         on_delete = "Cascade"
     )]
     pub topics: HasOne<super::topics::Entity>,
-    #[sea_orm(has_many, via = "user_favorite_questions")]
-    pub users: HasMany<super::users::Entity>,
     #[sea_orm(has_many, via = "question_categories")]
     pub categories: HasMany<super::categories::Entity>,
+    #[sea_orm(has_many, via = "test_questions")]
+    pub tests: HasMany<super::tests::Entity>,
+    #[sea_orm(has_many, via = "user_favorite_questions")]
+    pub users: HasMany<super::users::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
